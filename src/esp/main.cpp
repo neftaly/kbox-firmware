@@ -38,6 +38,7 @@ static const uint32_t connectedColor = rgb.Color(0x00, 0x00, 0x40);
 static const uint32_t clientsConnectedColor = rgb.Color(0x00, 0x40, 0x00);
 
 #include <ESP8266WiFi.h>
+#include <ESP8266mDNS.h>
 #include <elapsedMillis.h>
 #include "common/comms/SlipStream.h"
 #include "common/comms/KommandHandler.h"
@@ -105,6 +106,19 @@ void setup() {
   webServer.setup();
 
   espState = ESPState::ESPStarting;
+
+  // https://github.com/SignalK/signalk-server-node/blob/master/lib/mdns.js
+  // Setup MDNS
+  MDNS.begin("KBox");
+  MDNS.addService("NMEA-0183", "_tcp", 10110);
+  MDNS.addService("KBox", "_tcp", 80);
+  MDNS.addServiceTxt("KBox", "_tcp", "server", NAME);
+  MDNS.addServiceTxt("KBox", "_tcp", "version", VERSION);
+  MDNS.addServiceTxt("KBox", "_tcp", "roles", "master, main");
+  MDNS.addServiceTxt("KBox", "_tcp", "self", app.SELF);
+  MDNS.addServiceTxt("KBox", "_tcp", "vessel_name", V_NAME);
+  MDNS.addServiceTxt("KBox", "_tcp", "vessel_mmsi", V_MMSI);
+  MDNS.addServiceTxt("KBox", "_tcp", "vessel_uuid", V_UUID);
 
   // This delay is important so that KBox can detect when firmware
   // upload are done and restart normal operation.
